@@ -1,14 +1,8 @@
 from .connection import get_database
-from flask import Flask, render_template, request, redirect, url_for
-import psycopg2
-import os
-from datetime import datetime, date
+from flask import Flask, render_template, request, redirect
+from datetime import date
 import validators
 from urllib.parse import urlparse
-from dotenv import load_dotenv
-
-
-load_dotenv()
 
 
 app = Flask(__name__)
@@ -34,6 +28,7 @@ def get_page():
         data=urls_
     )
 
+
 @app.post('/urls')
 def insert_url():
     db = get_database()
@@ -43,10 +38,12 @@ def insert_url():
         parsed_url = urlparse(url)
         normalized_url = f'{parsed_url.scheme}://{parsed_url.netloc}'
         curr.execute(f'INSERT INTO urls (name, created_at)'
-                    f" VALUES ('{normalized_url}', '{date.today()}');")
+                     f" VALUES ('{normalized_url}', '{date.today()}');")
         db.commit()
-        curr.execute("SELECT id, name, created_at FROM urls WHERE name = %s", (normalized_url,))
-        result = curr.fetchall()[0]
+        curr.execute(
+            "SELECT id, name, created_at\
+                  FROM urls WHERE name = %s", (normalized_url,))
+        result = curr.fetchone()
         curr.close()
         db.close()
         return redirect(f"urls/{result[0]}")
@@ -59,8 +56,9 @@ def insert_url():
 def show_specific_url(id):
     db = get_database()
     curr = db.cursor()
-    curr.execute("SELECT id, name, created_at FROM urls WHERE id = %s", (str(id),))
-    result = curr.fetchall()[0]
+    curr.execute(
+        "SELECT id, name, created_at FROM urls WHERE id = %s", (str(id),))
+    result = curr.fetchone()
     if not result:
         db.close()
         return render_template('/404.html'), 404
