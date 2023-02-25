@@ -67,4 +67,3 @@ def show_specific_url(id):
     db.close
     return render_template('urls/url_id.html',
                            result=result)
-    
