@@ -61,7 +61,24 @@ def show_specific_url(id):
     result = curr.fetchone()
     if not result:
         db.close()
-        return render_template('/404.html'), 404
-    db.close
+        return redirect('/404.html'), 404
+    curr.execute(f"SELECT * FROM url_checks"
+                 f" WHERE url_id = '{id}' ORDER BY id DESC;")
+    checks = curr.fetchall()
+    db.close()
     return render_template('urls/url_id.html',
-                           result=result)
+                           result=result,
+                           checks=checks)
+
+
+@app.post('/urls/<id>/checks')
+def make_check(id):
+    db = get_database()
+    curr = db.cursor()
+    curr.execute(
+        f"INSERT INTO url_checks ("
+        f"url_id, created_at) VALUES ({id}, '{date.today()}')"
+    )
+    db.commit()
+    db.close()
+    return redirect(f'/urls/{int(id)}')

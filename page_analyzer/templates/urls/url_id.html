@@ -50,7 +50,7 @@
   </div>
 
     <h2 class="mt-5 mb-3">Проверки</h2>
-    <form method="post" action="/urls/2/checks">
+    <form method="post" action="/urls/{{ result[0] }}/checks">
     <input type="submit" class="btn btn-primary" value="Запустить проверку">
     </form>
     
@@ -64,8 +64,18 @@
         <th>title</th>
         <th>description</th>
         <th>Дата создания</th>
+
     </tr>
-    
+    {% for check in checks %}
+    <tr>
+      <td>{{ check[0] }}</td>
+      <td>{{ check[2] }}</td>
+      <td>{{ check[3] }}</td>
+      <td>{{ check[4] }}</td>
+      <td>{{ check[5] }}</td>
+      <td>{{ check[6] }}</td>
+    </tr>
+    {% endfor %}
       </tbody>
     </table>
   </div>
