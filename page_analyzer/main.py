@@ -1,9 +1,9 @@
-from .connection import get_database
+from .connection import get_database, get_status
 from flask import Flask, render_template, request, redirect
 from datetime import date
-import validators
 from urllib.parse import urlparse
-
+from .db_operations import get_all_urls
+import validators
 
 app = Flask(__name__)
 
@@ -18,14 +18,12 @@ def starting_page():
 @app.get('/urls')
 def get_page():
     db = get_database()
-    curr = db.cursor()
-    curr.execute("SELECT * FROM urls;")
-    urls_ = curr.fetchall()
-    curr.close()
-    db.close()
+    result = get_all_urls(db)
     return render_template(
         'urls/index.html',
-        data=urls_
+        data=result[0],
+        checks=result[1],
+        codes = result[2]
     )
 
 
@@ -76,8 +74,11 @@ def make_check(id):
     db = get_database()
     curr = db.cursor()
     curr.execute(
+        "SELECT name FROM urls WHERE id = %s LIMIT 1", (str(id)))
+    url = curr.fetchone()[0]
+    curr.execute(
         f"INSERT INTO url_checks ("
-        f"url_id, created_at) VALUES ({id}, '{date.today()}')"
+        f"url_id, created_at, status_code) VALUES ({id}, '{date.today()}', {get_status(url)})"
     )
     db.commit()
     db.close()
