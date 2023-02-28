@@ -23,7 +23,7 @@ def get_page():
         'urls/index.html',
         data=result[0],
         checks=result[1],
-        codes = result[2]
+        codes=result[2]
     )
 
 
@@ -78,7 +78,8 @@ def make_check(id):
     url = curr.fetchone()[0]
     curr.execute(
         f"INSERT INTO url_checks ("
-        f"url_id, created_at, status_code) VALUES ({id}, '{date.today()}', {get_status(url)})"
+        f"url_id, created_at, status_code)"
+        f" VALUES ({id}, '{date.today()}', {get_status(url)})"
     )
     db.commit()
     db.close()
