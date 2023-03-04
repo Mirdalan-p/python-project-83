@@ -1,3 +1,5 @@
+
+
 def get_all_urls(db):
     curr = db.cursor()
     curr.execute("SELECT * FROM urls;")
@@ -5,8 +7,7 @@ def get_all_urls(db):
     last_checks = {}
     last_code = {}
     for url in urls_:
-        curr.execute(f"SELECT created_at, status_code, h1,\
-                      title, description FROM url_checks"
+        curr.execute(f"SELECT created_at, status_code, h1, title, description FROM url_checks"
                      f" WHERE url_id = '{url[0]}' ORDER BY"
                      f" created_at DESC LIMIT 1;")
         actual_info = curr.fetchone()
