@@ -8,13 +8,14 @@ def make_soup(url):
     if soup.find('h1'):
         h1 = soup.find('h1').string
     else:
-        h1 = 'Пусто'
+        h1 = ''
     if soup.find('title'):
         title = soup.find('title').string
     else:
-        title = 'Пусто'
-    if soup.find('meta'):
-        description = soup.find('meta', attrs={"name": "description"})
+        title = ''
+    if soup.find('meta', attrs={"name": "description"}):
+        description = soup.find(
+            'meta', attrs={"name": "description"})['content']
     else:
-        description['content'] = 'Пусто'
-    return {'h1': h1, 'title': title, 'description': description['content']}
+        description = ''
+    return {'h1': h1, 'title': title, 'description': description}
