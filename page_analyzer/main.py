@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect
 from datetime import date
 from urllib.parse import urlparse
 from .db_operations import get_all_urls
+from .parser import make_soup
 import validators
 
 app = Flask(__name__)
@@ -76,10 +77,11 @@ def make_check(id):
     curr.execute(
         "SELECT name FROM urls WHERE id = %s LIMIT 1", (str(id)))
     url = curr.fetchone()[0]
+    soup = make_soup(url)
     curr.execute(
         f"INSERT INTO url_checks ("
-        f"url_id, created_at, status_code)"
-        f" VALUES ({id}, '{date.today()}', {get_status(url)})"
+        f"url_id, created_at, status_code, h1, title, description)"
+        f" VALUES ({id}, '{date.today()}', {get_status(url)}, '{soup['h1']}', '{soup['title']}', '{soup['description']}')"
     )
     db.commit()
     db.close()
