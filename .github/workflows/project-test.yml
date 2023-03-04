@@ -13,7 +13,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install poetry
-          make install
+          make project-install
       - name: Run linter
         run: |
           make lint
