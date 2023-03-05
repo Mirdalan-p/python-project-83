@@ -12,7 +12,11 @@ def get_all_urls(db):
                      f" WHERE url_id = '{url[0]}' ORDER BY"
                      f" created_at DESC LIMIT 1;")
         actual_info = curr.fetchone()
-        last_checks[url[0]] = actual_info[0]
-        last_code[url[0]] = actual_info[1]
+        if actual_info:
+            last_checks[url[0]] = actual_info[0]
+            last_code[url[0]] = actual_info[1]
+        else:
+            last_checks[url[0]] = ' '
+            last_code[url[0]] = ' '
     curr.close()
     return (urls_, last_checks, last_code)

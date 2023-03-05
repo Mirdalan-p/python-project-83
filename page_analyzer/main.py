@@ -1,18 +1,32 @@
 from .connection import get_database, get_status
-from flask import Flask, render_template, request, redirect
-from datetime import date
+from flask import (Flask,
+                   render_template,
+                   request,
+                   redirect,
+                   flash,
+                   get_flashed_messages)
 from urllib.parse import urlparse
 from .db_operations import get_all_urls
 from .parser import make_soup
 import validators
+from dotenv import load_dotenv
+import os
+from datetime import date
+
+
+load_dotenv()
+
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET')
 
 
 @app.route('/')
 def starting_page():
+    messages = get_flashed_messages(with_categories=True)
     return render_template(
-        'index.html'
+        'index.html',
+        messages=messages
     )
 
 
@@ -36,22 +50,31 @@ def insert_url():
     if validators.url(url):
         parsed_url = urlparse(url)
         normalized_url = f'{parsed_url.scheme}://{parsed_url.netloc}'
-        curr.execute(f'INSERT INTO urls (name, created_at)'
-                     f" VALUES ('{normalized_url}', '{date.today()}');")
-        db.commit()
-        curr.execute(
-            "SELECT id, name, created_at\
-                  FROM urls WHERE name = %s", (normalized_url,))
-        result = curr.fetchone()
-        curr.close()
-        db.close()
-        return redirect(f"urls/{result[0]}")
+        curr.execute(f"SELECT id, name from urls\
+                      WHERE name = '{normalized_url}';")
+        check_in_db = curr.fetchone()
+        if not check_in_db:
+            curr.execute(f'INSERT INTO urls (name, created_at)'
+                         f" VALUES ('{normalized_url}', '{date.today()}');")
+            db.commit()
+            curr.execute(
+                "SELECT id, name, created_at\
+                    FROM urls WHERE name = %s", (normalized_url,))
+            result = curr.fetchone()
+            curr.close()
+            db.close()
+            flash('Страница успешно добавлена', 'success')
+            return redirect(f"urls/{result[0]}")
+        else:
+            flash('Страница уже существует', 'success')
+            return redirect(f'urls/{check_in_db[0]}')
     else:
+        flash('Некорректный URL', 'error')
         return redirect(
             '/')
 
 
-@app.route('/urls/<int:id>')
+@app.route('/urls/<id>')
 def show_specific_url(id):
     db = get_database()
     curr = db.cursor()
@@ -65,9 +88,11 @@ def show_specific_url(id):
                  f" WHERE url_id = '{id}' ORDER BY id DESC;")
     checks = curr.fetchall()
     db.close()
+    messages = get_flashed_messages(with_categories=True)
     return render_template('urls/url_id.html',
                            result=result,
-                           checks=checks)
+                           checks=checks,
+                           messages=messages)
 
 
 @app.post('/urls/<id>/checks')
