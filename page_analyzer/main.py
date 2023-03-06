@@ -37,9 +37,9 @@ def get_page():
     result = get_all_urls(db)
     return render_template(
         'urls/index.html',
-        data=result[0],
-        checks=result[1],
-        codes=result[2]
+        data=result.urls,
+        checks=result.checks,
+        codes=result.status_codes
     )
 
 
@@ -67,10 +67,10 @@ def insert_url():
             flash('Страница успешно добавлена', 'success')
             return redirect(url_for('show_specific_url', id=result[0]))
         else:
-            flash('Страница уже существует', 'success')
+            flash('Страница уже существует', 'info')
             return redirect(url_for('show_specific_url', id=check_in_db[0]))
     else:
-        flash('Некорректный URL', 'error')
+        flash('Некорректный URL', 'danger')
         return redirect(
             '/')
 
@@ -112,4 +112,5 @@ def make_check(id):
     )
     db.commit()
     db.close()
+    flash('Страница успешно проверена', 'success')
     return redirect(url_for('show_specific_url', id=id))
