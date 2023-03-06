@@ -71,8 +71,7 @@ def insert_url():
             return redirect(url_for('show_specific_url', id=check_in_db[0]))
     else:
         flash('Некорректный URL', 'danger')
-        return redirect(
-            '/')
+        return render_template('index.html', url_name=url), 422
 
 
 @app.route('/urls/<id>')
