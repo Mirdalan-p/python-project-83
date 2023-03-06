@@ -115,6 +115,6 @@ def make_check(id):
         db.close()
         flash('Страница успешно проверена', 'success')
         return redirect(url_for('show_specific_url', id=id))
-    except:
+    except Exception:
         flash('Произошла ошибка при проверке', 'danger')
         return redirect(url_for('show_specific_url', id=id))
