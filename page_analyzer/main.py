@@ -4,7 +4,8 @@ from flask import (Flask,
                    request,
                    redirect,
                    flash,
-                   get_flashed_messages)
+                   get_flashed_messages,
+                   url_for)
 from urllib.parse import urlparse
 from .db_operations import get_all_urls
 from .parser import make_soup
@@ -64,10 +65,10 @@ def insert_url():
             curr.close()
             db.close()
             flash('Страница успешно добавлена', 'success')
-            return redirect(f"urls/{result[0]}")
+            return redirect(url_for('show_specific_url', id=result[0]))
         else:
             flash('Страница уже существует', 'success')
-            return redirect(f'urls/{check_in_db[0]}')
+            return redirect(url_for('show_specific_url', id=check_in_db[0]))
     else:
         flash('Некорректный URL', 'error')
         return redirect(
@@ -95,7 +96,7 @@ def show_specific_url(id):
                            messages=messages)
 
 
-@app.post('/urls/<id>/checks')
+@app.post('/urls/<int:id>/checks')
 def make_check(id):
     db = get_database()
     curr = db.cursor()
@@ -111,4 +112,4 @@ def make_check(id):
     )
     db.commit()
     db.close()
-    return redirect(f'/urls/{int(id)}')
+    return redirect(url_for('show_specific_url', id=id))
