@@ -16,7 +16,7 @@ def get_all_urls(db):
             checks[url[0]] = actual_info[0]
             status_codes[url[0]] = actual_info[1]
         else:
-            checks[url[0]] = ' '
-            status_codes[url[0]] = ' '
+            checks[url[0]] = ''
+            status_codes[url[0]] = ''
     curr.close()
     return (urls, checks, status_codes)
