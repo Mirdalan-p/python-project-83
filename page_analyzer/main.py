@@ -37,9 +37,9 @@ def get_page():
     result = get_all_urls(db)
     return render_template(
         'urls/index.html',
-        data=result.urls,
-        checks=result.checks,
-        codes=result.status_codes
+        data=result['urls'],
+        checks=result['checks'],
+        codes=result['status_codes']
     )
 
 
