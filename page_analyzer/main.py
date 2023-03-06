@@ -108,7 +108,7 @@ def make_check(id):
     except requests.exceptions.RequestException:
         flash('Произошла ошибка при проверке', 'danger')
         return redirect(url_for('show_specific_url', id=id))
-        
+
     curr.execute(
         f"INSERT INTO url_checks ("
         f"url_id, created_at, status_code, h1, title, description)"
@@ -118,4 +118,4 @@ def make_check(id):
     db.commit()
     db.close()
     flash('Страница успешно проверена', 'success')
-    return redirect(url_for('show_specific_url', id=id))        
+    return redirect(url_for('show_specific_url', id=id))
