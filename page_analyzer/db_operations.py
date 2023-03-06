@@ -19,4 +19,4 @@ def get_all_urls(db):
             checks[url[0]] = ''
             status_codes[url[0]] = ''
     curr.close()
-    return (urls, checks, status_codes)
+    return {'urls': urls, 'checks': checks, 'status_codes': status_codes}
