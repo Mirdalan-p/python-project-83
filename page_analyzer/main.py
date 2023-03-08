@@ -107,9 +107,8 @@ def make_check(id):
         curr.execute(
             f"INSERT INTO url_checks ("
             f"url_id, created_at, status_code, h1, title, description)"
-            f" VALUES ({id}, '{date.today()}', {get_status(url)},\
-                '{soup['h1']}', '{soup['title']}', '{soup['description']}')"
-                    )
+            f" VALUES ({id}, '{date.today()}', {get_status(url)},"
+            f" '{soup['h1']}', '{soup['title']}', '{soup['description']}')")
         db.commit()
         db.close()
         flash('Страница успешно проверена', 'success')
