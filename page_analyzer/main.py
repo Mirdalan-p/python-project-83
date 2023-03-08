@@ -12,7 +12,6 @@ from .parser import make_soup
 import validators
 from dotenv import load_dotenv
 import os
-import requests
 from datetime import date
 
 
@@ -103,35 +102,19 @@ def make_check(id):
     curr.execute(
         "SELECT name FROM urls WHERE id = %s LIMIT 1", (str(id)))
     url = curr.fetchone()[0]
-    try:
+    if get_status(url) == 200:
         soup = make_soup(url)
-    except Exception:
+        curr.execute(
+            f"INSERT INTO url_checks ("
+            f"url_id, created_at, status_code, h1, title, description)"
+            f" VALUES ({id}, '{date.today()}', {get_status(url)},\
+                '{soup['h1']}', '{soup['title']}', '{soup['description']}')"
+            )
+        db.commit()
+        db.close()
+        flash('Страница успешно проверена', 'success')
+
+    else:
         flash('Произошла ошибка при проверке', 'danger')
-        return redirect(url_for('show_specific_url', id=id))
 
-    curr.execute(
-        f"INSERT INTO url_checks ("
-        f"url_id, created_at, status_code, h1, title, description)"
-        f" VALUES ({id}, '{date.today()}', {get_status(url)},\
-            '{soup['h1']}', '{soup['title']}', '{soup['description']}')"
-        )
-    db.commit()
-    db.close()
-    flash('Страница успешно проверена', 'success')
     return redirect(url_for('show_specific_url', id=id))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
