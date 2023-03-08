@@ -105,7 +105,7 @@ def make_check(id):
     url = curr.fetchone()[0]
     try:
         soup = make_soup(url)
-    except requests.exceptions.RequestException:
+    except Exception:
         flash('Произошла ошибка при проверке', 'danger')
         return redirect(url_for('show_specific_url', id=id))
 
@@ -119,3 +119,19 @@ def make_check(id):
     db.close()
     flash('Страница успешно проверена', 'success')
     return redirect(url_for('show_specific_url', id=id))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
