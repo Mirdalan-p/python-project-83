@@ -2,7 +2,7 @@ import psycopg2
 import requests
 from dotenv import load_dotenv
 import os
-
+from requests.exceptions import HTTPError
 
 load_dotenv()
 
@@ -12,5 +12,10 @@ def get_database():
 
 
 def get_status(url):
-    r = requests.get(url)
-    return r.status_code
+    try:
+        response = requests.get(url)
+        return response.status_code
+    except HTTPError:
+        return 'bad_status'
+    except Exception:
+        return 'bad_status'
