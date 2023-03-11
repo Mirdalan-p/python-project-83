@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 
 
-def make_soup(url):
+def parse_html(url):
     markup = requests.get(url).text
     soup = BeautifulSoup(markup, 'html.parser')
     if soup.find('h1'):

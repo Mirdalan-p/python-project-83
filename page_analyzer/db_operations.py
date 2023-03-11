@@ -1,3 +1,4 @@
+from .connection import get_database
 
 
 def get_all_urls(db):
@@ -20,3 +21,10 @@ def get_all_urls(db):
             status_codes[url[0]] = ''
     curr.close()
     return {'urls': urls, 'checks': checks, 'status_codes': status_codes}
+
+
+def make_insert(table, fields, values):
+    db = get_database()
+    curr = db.cursor()
+    curr.execute(f'INSERT INTO {table} {str(fields)} VALUES {str(values)};')
+    db.commit()

@@ -7,8 +7,8 @@ from flask import (Flask,
                    get_flashed_messages,
                    url_for)
 from urllib.parse import urlparse
-from .db_operations import get_all_urls
-from .parser import make_soup
+from .db_operations import get_all_urls, make_insert
+from .parser import parse_html
 import validators
 from dotenv import load_dotenv
 import os
@@ -55,9 +55,8 @@ def insert_url():
                       WHERE name = '{normalized_url}';")
         check_in_db = curr.fetchone()
         if not check_in_db:
-            curr.execute(f'INSERT INTO urls (name, created_at)'
-                         f" VALUES ('{normalized_url}', '{date.today()}');")
-            db.commit()
+            make_insert('urls', '(name, created_at)',
+                        (normalized_url, str(date.today())))
             curr.execute(
                 "SELECT id, name, created_at\
                     FROM urls WHERE name = %s", (normalized_url,))
@@ -103,14 +102,12 @@ def make_check(id):
         "SELECT name FROM urls WHERE id = %s LIMIT 1", (str(id)))
     url = curr.fetchone()[0]
     if get_status(url) == 200:
-        soup = make_soup(url)
-        curr.execute(
-            f"INSERT INTO url_checks ("
-            f"url_id, created_at, status_code, h1, title, description)"
-            f" VALUES ({id}, '{date.today()}', {get_status(url)},\
-                '{soup['h1']}', '{soup['title']}', '{soup['description']}')"
-        )
-        db.commit()
+        html = parse_html(url)
+        make_insert('url_checks', '(url_id, created_at,\
+                     status_code, h1, title, description)',
+                    (str(id), str(date.today()), str(get_status(url)),
+                        html['h1'], html['title'],
+                        html['description']))
         db.close()
         flash('Страница успешно проверена', 'success')
 
