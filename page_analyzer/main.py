@@ -1,4 +1,3 @@
-from .connection import get_database, get_status
 from flask import (Flask,
                    render_template,
                    request,
@@ -6,13 +5,16 @@ from flask import (Flask,
                    flash,
                    get_flashed_messages,
                    url_for)
+from .db import (get_all_urls,
+                 make_insert,
+                 get_database)
 from urllib.parse import urlparse
-from .db_operations import get_all_urls, make_insert
 from .parser import parse_html
-import validators
 from dotenv import load_dotenv
-import os
 from datetime import date
+import validators
+import os
+import requests
 
 
 load_dotenv()
@@ -22,8 +24,18 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 
+def get_status(url):
+    try:
+        response = requests.get(url)
+        return response.status_code
+    except requests.HTTPError:
+        return 'bad_status'
+    except Exception:
+        return 'bad_status'
+
+
 @app.route('/')
-def starting_page():
+def index():
     messages = get_flashed_messages(with_categories=True)
     return render_template(
         'index.html',
@@ -44,7 +56,7 @@ def get_page():
 
 
 @app.post('/urls')
-def insert_url():
+def post_url():
     db = get_database()
     curr = db.cursor()
     url = request.form['url']
@@ -64,17 +76,17 @@ def insert_url():
             curr.close()
             db.close()
             flash('Страница успешно добавлена', 'success')
-            return redirect(url_for('show_specific_url', id=result[0]))
+            return redirect(url_for('get_url', id=result[0]))
         else:
             flash('Страница уже существует', 'info')
-            return redirect(url_for('show_specific_url', id=check_in_db[0]))
+            return redirect(url_for('get_url', id=check_in_db[0]))
     else:
         flash('Некорректный URL', 'danger')
         return render_template('index.html', url_name=url), 422
 
 
 @app.route('/urls/<id>')
-def show_specific_url(id):
+def get_url(id):
     db = get_database()
     curr = db.cursor()
     curr.execute(
@@ -95,7 +107,7 @@ def show_specific_url(id):
 
 
 @app.post('/urls/<int:id>/checks')
-def make_check(id):
+def post_check(id):
     db = get_database()
     curr = db.cursor()
     curr.execute(
@@ -114,4 +126,4 @@ def make_check(id):
     else:
         flash('Произошла ошибка при проверке', 'danger')
 
-    return redirect(url_for('show_specific_url', id=id))
+    return redirect(url_for('get_url', id=id))
