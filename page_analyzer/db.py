@@ -37,3 +37,29 @@ def make_insert(table, fields, values):
     curr = db.cursor()
     curr.execute(f'INSERT INTO {table} {str(fields)} VALUES {str(values)};')
     db.commit()
+    db.close
+
+
+def db_select(fields, table, field, value, order=None, limit=0):
+    db = get_database()
+    curr = db.cursor()
+    if limit:
+        curr.execute(
+            f"SELECT {fields} FROM {table} WHERE {field}"
+            f" = '{str(value)}' LIMIT {str(limit)}")
+        result = curr.fetchone()
+        db.close
+        return result
+    elif order:
+        curr.execute(
+            f"SELECT {fields} FROM {table} WHERE {field}"
+            f" = '{str(value)}' ORDER BY {order}")
+        result = curr.fetchall()
+        db.close
+        return result
+    else:
+        curr.execute(
+            f"SELECT {fields} FROM {table} WHERE {field} = '{str(value)}'")
+        result = curr.fetchone()
+        db.close
+        return result

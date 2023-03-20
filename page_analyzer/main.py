@@ -7,7 +7,8 @@ from flask import (Flask,
                    url_for)
 from .db import (get_all_urls,
                  make_insert,
-                 get_database)
+                 get_database,
+                 db_select)
 from urllib.parse import urlparse
 from .parser import parse_html
 from dotenv import load_dotenv
@@ -57,24 +58,15 @@ def get_page():
 
 @app.post('/urls')
 def post_url():
-    db = get_database()
-    curr = db.cursor()
     url = request.form['url']
     if validators.url(url):
         parsed_url = urlparse(url)
         normalized_url = f'{parsed_url.scheme}://{parsed_url.netloc}'
-        curr.execute(f"SELECT id, name from urls\
-                      WHERE name = '{normalized_url}';")
-        check_in_db = curr.fetchone()
+        check_in_db = db_select("id", "urls", "name", normalized_url)
         if not check_in_db:
             make_insert('urls', '(name, created_at)',
                         (normalized_url, str(date.today())))
-            curr.execute(
-                "SELECT id, name, created_at\
-                    FROM urls WHERE name = %s", (normalized_url,))
-            result = curr.fetchone()
-            curr.close()
-            db.close()
+            result = db_select("id", "urls", "name", normalized_url)
             flash('Страница успешно добавлена', 'success')
             return redirect(url_for('get_url', id=result[0]))
         else:
@@ -87,32 +79,20 @@ def post_url():
 
 @app.route('/urls/<id>')
 def get_url(id):
-    db = get_database()
-    curr = db.cursor()
-    curr.execute(
-        "SELECT id, name, created_at FROM urls WHERE id = %s", (str(id),))
-    result = curr.fetchone()
-    if not result:
-        db.close()
+    site = db_select("id, name, created_at", "urls", "id", id)
+    if not site:
         return redirect('/404.html'), 404
-    curr.execute(f"SELECT * FROM url_checks"
-                 f" WHERE url_id = '{id}' ORDER BY id DESC;")
-    checks = curr.fetchall()
-    db.close()
+    checks = db_select('*', 'url_checks', 'url_id', id, order='id DESC')
     messages = get_flashed_messages(with_categories=True)
     return render_template('urls/url_id.html',
-                           result=result,
+                           result=site,
                            checks=checks,
                            messages=messages)
 
 
 @app.post('/urls/<int:id>/checks')
 def post_check(id):
-    db = get_database()
-    curr = db.cursor()
-    curr.execute(
-        "SELECT name FROM urls WHERE id = %s LIMIT 1", (str(id)))
-    url = curr.fetchone()[0]
+    url = db_select('name', 'urls', 'id', id, limit=1)[0]
     if get_status(url) == 200:
         html = parse_html(url)
         make_insert('url_checks', '(url_id, created_at,\
@@ -120,7 +100,6 @@ def post_check(id):
                     (str(id), str(date.today()), str(get_status(url)),
                         html['h1'], html['title'],
                         html['description']))
-        db.close()
         flash('Страница успешно проверена', 'success')
 
     else:
